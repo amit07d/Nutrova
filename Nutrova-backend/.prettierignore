@@ -1,0 +1,10 @@
+.vscode/
+node_modules/
+dist/
+build/
+.next/
+out/
+
+*.env
+.env
+.env.*

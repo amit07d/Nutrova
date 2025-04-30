@@ -5,10 +5,11 @@
   "descriptions": "Backend for Nutrova health and BMI tracker app. ",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js",
+    "format": "prettier --write ."
   },
   "keywords": [],
-  "author": "",
+  "author": "Amit Debnath",
   "license": "ISC",
   "description": "",
   "dependencies": {
@@ -20,6 +21,7 @@
     "mongoose": "^8.14.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "prettier": "^3.5.3"
   }
 }
