@@ -1,16 +1,19 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import BMIGauge from "./BMIGauge";
+import BmiHistory from "./BmiHistory";
 import axios from "axios";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
 
 const BMICalculatorForm = () => {
-  const { user } = useUser();
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
   const [bmi, setBmi] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const { getToken } = useAuth();
 
   const calculateBMI = async () => {
     if (!gender || !age || !height || !weight) {
@@ -25,29 +28,36 @@ const BMICalculatorForm = () => {
 
     const heightInMeters = height / 100;
     const calculatedBMI = (weight / (heightInMeters * heightInMeters)).toFixed(2);
-    setBmi(parseFloat(calculatedBMI));
+    const parsedBMI = parseFloat(calculatedBMI);
+    setBmi(parsedBMI);
 
-    // Save BMI history for user 
+    const status =
+      parsedBMI < 18.5
+        ? "Underweight"
+        : parsedBMI < 25
+        ? "Normal"
+        : parsedBMI < 30
+        ? "Overweight"
+        : "Obese";
+
     try {
-      await axios.post("http://localhost:8000/api/bmi/save", {
-        userId: user.id,
-        bmi: parseFloat(calculatedBMI),
-        weight: parseFloat(weight),
-        height: parseFloat(height),
-        status: getBMIStatus(calculatedBMI),
-      });
-      toast.success("BMI history saved successfully!");
+      const token = await getToken();
+      await axios.post(
+        "http://localhost:8000/api/bmi/save",
+        { weight, height, status },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      );
+
+      toast.success("BMI saved to history!");
     } catch (error) {
       console.error("Failed to save BMI:", error);
-      toast.error("Failed to save BMI history.");
+      toast.error("Failed to save BMI.");
     }
-  };
-
-  const getBMIStatus = (bmi) => {
-    if (bmi < 18.5) return "Underweight";
-    else if (bmi >= 18.5 && bmi < 25) return "Healthy";
-    else if (bmi >= 25 && bmi < 30) return "Overweight";
-    else return "Obese";
   };
 
   const getMessage = (bmi) => {
@@ -62,7 +72,9 @@ const BMICalculatorForm = () => {
       <h1 className="text-3xl font-bold text-center mb-8">BMI Calculator</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Form Section */}
         <div>
+          {/* Gender Buttons */}
           <div className="flex gap-4 mb-4">
             <button
               onClick={() => setGender("Male")}
@@ -78,6 +90,7 @@ const BMICalculatorForm = () => {
             </button>
           </div>
 
+          {/* Age Input */}
           <div className="mb-4">
             <label className="block mb-1 font-medium">Age</label>
             <input
@@ -89,6 +102,7 @@ const BMICalculatorForm = () => {
             />
           </div>
 
+          {/* Height Input */}
           <div className="mb-4">
             <label className="block mb-1 font-medium">Height (in cm)</label>
             <input
@@ -100,6 +114,7 @@ const BMICalculatorForm = () => {
             />
           </div>
 
+          {/* Weight Input */}
           <div className="mb-4">
             <label className="block mb-1 font-medium">Weight (in kg)</label>
             <input
@@ -111,21 +126,29 @@ const BMICalculatorForm = () => {
             />
           </div>
 
+          {/* Calculate Button */}
           <button
             onClick={calculateBMI}
             className="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-6 py-2 rounded mt-4 w-full"
           >
             Calculate
           </button>
+
+          {/* View History Toggle Button */}
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="text-orange-600 font-medium mt-6 underline w-full"
+          >
+            {showHistory ? "Hide History" : "View Your BMI History"}
+          </button>
         </div>
 
+        {/* BMI Result Section */}
         {bmi !== null && (
           <div className="border rounded-lg p-6 text-center">
             <h2 className="text-xl font-bold mb-4">Your BMI is</h2>
             <div className="text-5xl font-extrabold mb-2">{bmi}</div>
-
             <BMIGauge bmi={bmi} />
-
             <div className="text-lg font-semibold text-red-600 mt-4">
               {getMessage(bmi)}
             </div>
@@ -135,6 +158,13 @@ const BMICalculatorForm = () => {
           </div>
         )}
       </div>
+
+      {/* Conditionally Rendered BMI History */}
+      {showHistory && (
+        <div className="mt-10">
+          <BmiHistory />
+        </div>
+      )}
     </div>
   );
 };

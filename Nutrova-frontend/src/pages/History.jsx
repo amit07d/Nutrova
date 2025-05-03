@@ -1,8 +1,11 @@
 import React from 'react'
+import BmiHistory from '../components/BmiHistory'
 
 function History() {
   return (
-    <div>History</div>
+    <div>
+      <BmiHistory />
+    </div>
   )
 }
 

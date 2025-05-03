@@ -1,8 +1,9 @@
 import { BmiHistory } from '../models/BmiHistory.model.js';
 
 export const saveBmi = async (req, res) => {
-  
-  const { userId, weight, height, status } = req.body;
+  const { weight, height, status } = req.body;
+  const userId = req.userId;
+
   try {
     const newEntry = new BmiHistory({ userId, weight, height, status });
     await newEntry.save();
@@ -14,16 +15,29 @@ export const saveBmi = async (req, res) => {
 };
 
 export const getBmiHistory = async (req, res) => {
-  const { userId } = req.params;
+  const userId = req.userId;
+
   try {
     const history = await BmiHistory.find({ userId }).sort({ createdAt: -1 });
-    res.json(history);
+    res.json({ bmiHistory: history });
   } catch (error) {
+    console.error("Error fetching BMI history:", error);
     res.status(500).json({ message: "Failed to fetch BMI history" });
   }
 };
 
+export const deleteBmiEntry = async (req, res) => {
+  const userId = req.userId;
+  const entryId = req.params.id;
 
-
-
-
+  try {
+    const entry = await BmiHistory.findOneAndDelete({ _id: entryId, userId });
+    if (!entry) {
+      return res.status(404).json({ message: "BMI entry not found" });
+    }
+    res.json({ message: "BMI entry deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting BMI entry:", error);
+    res.status(500).json({ message: "Failed to delete BMI entry" });
+  }
+};
