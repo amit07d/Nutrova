@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 
 const BmiHistory = () => {
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { getToken } = useAuth();
 
   useEffect(() => {
@@ -23,6 +24,9 @@ const BmiHistory = () => {
         setHistory(response.data.bmiHistory);
       } catch (error) {
         console.error("Failed to fetch BMI history:", error);
+        toast.error("Failed to load BMI history");
+      } finally {
+        setLoading(false); 
       }
     };
 
@@ -48,7 +52,9 @@ const BmiHistory = () => {
   return (
     <div className="max-w-3xl mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4 text-center">Your BMI History</h2>
-      {history.length === 0 ? (
+      {loading? ( 
+        <p className="text-gray-500 text-center">Loading...</p>
+      ): history.length === 0 ? (
         <p className="text-gray-500 text-center">No history found.</p>
       ) : (
         <ul className="space-y-4">
@@ -61,9 +67,7 @@ const BmiHistory = () => {
                   timeStyle: "medium",
                 })}
               </p>
-              <p className="text-sm text-gray-500">
-                User ID: {entry.userId}
-              </p>
+              <p className="text-sm text-gray-500">User ID: {entry.userId}</p>
               <p className="font-semibold">BMI: {entry.bmi}</p>
               <p>Weight: {entry.weight} kg</p>
               <p>Height: {entry.height} cm</p>
