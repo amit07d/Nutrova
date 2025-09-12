@@ -6,8 +6,11 @@ export const saveBmi = async (req, res) => {
 
   try {
     const newEntry = new BmiHistory({ userId, weight, height, status });
-    await newEntry.save();
-    res.status(201).json({ message: "BMI saved successfully" });
+    if (!weight || !height) {
+  return res.status(400).json({ message: "Weight and height are required" });
+}
+   await newEntry.save();
+    res.status(201).json({ message: "BMI saved successfully", entry: newEntry });
   } catch (error) {
     console.error("Error saving BMI:", error);
     res.status(500).json({ message: "Failed to save BMI" });
@@ -35,7 +38,7 @@ export const deleteBmiEntry = async (req, res) => {
     if (!entry) {
       return res.status(404).json({ message: "BMI entry not found" });
     }
-    res.json({ message: "BMI entry deleted successfully" });
+    res.json({ message: "BMI entry deleted successfully", deletedEntry: entry });
   } catch (error) {
     console.error("Error deleting BMI entry:", error);
     res.status(500).json({ message: "Failed to delete BMI entry" });
