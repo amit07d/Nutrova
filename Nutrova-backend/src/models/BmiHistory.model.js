@@ -16,10 +16,12 @@ const bmiHistorySchema = new mongoose.Schema(
       required: true,
       min: 2,
     },
-    bmi: Number,
+    bmi: {
+      type: Number,
+    },
     status: {
       type: String,
-      required: true,
+      default: "Calculating..."
     },
     date: {
       type: Date,
@@ -29,11 +31,22 @@ const bmiHistorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-bmiHistorySchema.pre("save", function (next) {
+bmiHistorySchema.pre("validate", function (next) {
+  console.log("Pre-validate hook running...");
+  
   if (this.height && this.weight) {
     const heightInMeters = this.height / 100;
     this.bmi = parseFloat((this.weight / (heightInMeters ** 2)).toFixed(2));
+    
+    // Calculate status based on BMI
+    if (this.bmi < 18.5) this.status = "Underweight";
+    else if (this.bmi < 25) this.status = "Normal";
+    else if (this.bmi < 30) this.status = "Overweight";
+    else this.status = "Obese";
+    
+    console.log(`Calculated: Height=${this.height}, Weight=${this.weight}, BMI=${this.bmi}, Status=${this.status}`);
   }
+  
   next();
 });
 
