@@ -140,3 +140,11 @@ Feel free to open a PR or issue to improve the project.
 📜 License
 
 This project is licensed under the ISC License.
+
+👨‍💻 Author
+
+Amit Debnath
+
+GitHub: @amit07d
+
+
